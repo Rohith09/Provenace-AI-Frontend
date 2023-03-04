@@ -15,56 +15,52 @@ import {
   FormControl,
   FormLabel,
   Input,
-  Image
+  Image,
+  Button,
   
   
 } from "@chakra-ui/react"
 import { ColorModeSwitcher } from "./ColorModeSwitcher"
 import { Logo } from "./Logo"
+const apiKey = process.env.REACT_APP_API_KEY;
 
 const config = new Configuration({
-  apiKey: process.env.API_KEY,
+  apiKey: apiKey,
 });
+
 const openai = new OpenAIApi(config);
-
-async function generateImage(prompt: string): Promise<string | null> {
-  const result = await openai.createImage({
-      prompt: prompt,
-      n: 1,
-      size: "1024x1024",
-  });
-  const url = result.data.data[0].url;
-// Save Image to disk
-  if (!url) {
-    console.error("No URL returned from API");
-    return null;
-  }
-  const image = await fetch(url);
-  const blob = await image.blob();
-  const dataUrl = URL.createObjectURL(blob);
-  return dataUrl;
-
-  // const blob = await image.blob();
-  // const buffer =  Buffer.from(await blob.arrayBuffer());
-  // writeFileSync(`./img/${Date.now()}.png`, buffer);
-  // return `./img/${Date.now()}.png`;
-}
 
 
 export const App = () => {
+  const [result, setResult] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
   const [description, setDescription] = useState('')
   const [title, setTitle] = useState('')
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  const handleClick = async () => {
-    const url = await generateImage("some prompt");
-    setImageUrl(url);
-};
+  const generateImage = async (): Promise<void> => {
+    setLoading(true);
+    try {
+      const res = await openai.createImage({
+        prompt: description,
+        n: 1,
+        size: "512x512",
+      });
+  
+      setResult(res.data.data[0].url ?? "");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
 
   return(
+    
   <Flex height="120vh" justifyContent="center" paddingTop={5}>
+    <VStack >
         <Flex
           height="fit-content"
           direction={"column"}
@@ -98,9 +94,17 @@ export const App = () => {
         />
         </FormControl>
         </Box>
+        <Button 
+        isLoading={loading}
+        loadingText='Submitting'
+        // colorScheme='teal'
+        // variant='outline' 
+        onClick={generateImage}>Submit</Button>
         </Flex>
-        <Image/>
+        {result.length > 0 ? <Image mt={"20px"} width={"350px"} src={result}/> : <></>}
+        </VStack>
       </Flex>
+      
       
       
       
