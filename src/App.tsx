@@ -1,9 +1,6 @@
 import * as React from "react"
 import { useState } from "react"
-import dotenv from 'dotenv';
 import {Configuration, OpenAIApi} from 'openai';
-import {readFileSync, writeFileSync} from 'fs';
-dotenv.config();
 import {
   ChakraProvider,
   Box,
